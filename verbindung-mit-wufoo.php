@@ -7,7 +7,7 @@ Plugin Name: Verbindung mit Wufoo
 Plugin URI: https://palacios-online.de/
 Description: This plugin connects via REST the Ultimate Member plugin with the Wufoo platform, for an exclusive form from cliente reqirements.
 Version: 0.1
-Author: Palacios Online
+Author: Jose Manuel Rodriguez & Palacios Online
 Author URI: https://palacios-online.de/
 License: GPLv2 or later
 */
@@ -45,7 +45,7 @@ defined( 'ABSPATH' ) || exit;
 */
 function vmw_send_data_to_wufoo($registeredUserID){
     
-    //$registeredUserID = 506;
+    //$registeredUserID = 508;
     
     $wufoo_API_key = '14EZ-IL48-J3F3-LDNF';
     $wufoo_FORM_hash = 'se52lup0q26hy8';
@@ -89,13 +89,14 @@ function vmw_send_data_to_wufoo($registeredUserID){
     // Einzelpraxis/Satellitenpraxis - Gemeinschaftspraxis/MVZ - Klinik
     $type_company                   =   get_user_meta( $registeredUserID, 'type_company', true);
     
-    $user_specialization_exam_year  =   get_user_meta( $registeredUserID, 'user_specialization_exam_year', true);
+    $user_specialization_exam_year  =   get_user_meta( $registeredUserID, 'user_specialization_exam_year', true); 
+    
     
     // CREATE FIELDS STRING TO POST
     $fields = 'Field115='    .      $title          // User title
             . '&Field116='   .      $firstName      // User first name
             . '&Field117='   .      $lastName       // User last name
-        
+
             . '&Field3='     .      $address        // User street address
             . '&Field5='     .      $city           // User street address
             . '&Field7='     .      $zipcode        // User ZIP code
@@ -103,12 +104,122 @@ function vmw_send_data_to_wufoo($registeredUserID){
             . '&Field1229='  .      $telefone       // User phone number
     ;
     
+    // Desired Positions
+    foreach( $desired_positions as $position ){
+        $positions = array(
+            '12' => 'Assistenzarzt',
+            '13' => 'Facharzt mit Möglichkeit zur operativen Ausbildung',
+            '14' => 'Facharzt konservativ',
+            '15' => 'Operateur',
+        );  
+        foreach($positions as $key => $position_name){
+            if($position == strtoupper($position_name)){
+                $fields .= '&Field' . $key . '=' . urlencode($position_name);
+                break;
+            }
+        }                
+    }
+    
+    //Desired postal codes
+    $zip_codes = array();
+    for($i = 0; $i <= 9; $i++){
+        $zip_codes['12' . $i + 1] = $i;
+    } 
+    foreach( $desired_postalcode as $postalcode ){
+        
+        foreach($zip_codes as $apiID => $value){
+            //echo $postalcode . ' - ' . $apiID . ' - ' . $value . '<br />';
+            if ($postalcode == $value){
+                $fields .= '&Field' . $apiID . '=' . $postalcode;
+                break;
+            }
+        } 
+        
+    }
+    
+    // Desired Employments ratio
+    foreach( $desired_job as $position ){
+        $positions = array(
+            '221' => 'Angestellter Arzt',
+            '222' => 'Honorararzt',
+            '223' => 'Partner/Eigentümer',
+        );  
+        foreach($positions as $key => $position_name){
+            if($position == strtoupper($position_name)){
+                $fields .= '&Field' . $key . '=' . urlencode($position_name);
+                break;
+            }
+        }                
+    }
+    
+    // Desired Employments ratio
+    foreach( $desired_job_type as $position ){
+        $positions = array(
+            '1128' => 'Vollzeit',
+            '1129' => 'Teilzeit'
+        );  
+        foreach($positions as $key => $position_name){
+            if($position == strtoupper($position_name)){
+                $fields .= '&Field' . $key . '=' . urlencode($position_name);
+                break;
+            }
+        }                
+    }
+    
+    // Desired locations
+    foreach( $place_wished_residence as $position ){
+        $positions = array(
+            '321' => 'Ländlich',
+            '322' => 'Städtisch',
+            '323' => 'Grossstädtisch'
+        );  
+        foreach($positions as $key => $position_name){
+            if($position == strtoupper($position_name)){
+                $fields .= '&Field' . $key . '=' . urlencode($position_name);
+                break;
+            }
+        }                
+    }
+    
+    // Desired Target content
+    foreach( $desired_annual_salary as $position ){
+        $positions = array(
+            '421' => '<80.000 Euro',
+            '422' => '80.000 bis 120.000 Euro',
+            '423' => '120.000 bis 160.000 Euro',
+            '424' => '160.000 bis 200.000 Euro',
+            '425' => '>200.000 Euro'
+        );  
+        foreach($positions as $key => $position_name){
+            if($position == strtoupper($position_name)){
+                $fields .= '&Field' . $key . '=' . urlencode($position_name);
+                break;
+            }
+        }                
+    }
+    
+    // Desired Target content
+    foreach( $desired_annual_salary as $position ){
+        $positions = array(
+            '521' => 'Einzelpraxis/Satellitenpraxis',
+            '522' => 'Gemeinschaftspraxis/MVZ',
+            '523' => 'Klinik'
+        );  
+        foreach($positions as $key => $position_name){
+            if($position == strtoupper($position_name)){
+                $fields .= '&Field' . $key . '=' . urlencode($position_name);
+                break;
+            }
+        }                
+    }
+    
+    $fields .= '&Field1023='. urlencode($user_specialization_exam_year);
+    
     /**
     * Returns an array of wufoo entries of current form Hash for POST procedure
     * @wufoocurl
     */
     $wufoocurl = curl_init('https://kno.wufoo.com/api/v3/forms/'.$wufoo_FORM_hash.'/entries.json');
-    //$wufoocurl = curl_init('https://kno.wufoo.com/api/v3/forms/q1sgl0rw0h5216w/entries.json?sort=EntryId&sortDirection=DESC');
 
     
     curl_setopt($wufoocurl, CURLOPT_RETURNTRANSFER, 1);
@@ -141,7 +252,8 @@ function vmw_send_data_to_wufoo($registeredUserID){
         /**
         * Verificamos si el objeto tiene almenos 1 arreglo 
         */
-        if (count ($entries) > 0 ){
+        if (count ($entries->Entries) > 0 ){
+            
             /**
             * Variable contadora para recorrer el objeto @entries
             * @i
@@ -169,7 +281,7 @@ function vmw_send_data_to_wufoo($registeredUserID){
         * para hacer el envio a Wuffoo
         */
         if (!$duplicated){
-            
+        
             /**
             * Se setean las variables para hacer el POST
             */
@@ -184,9 +296,9 @@ function vmw_send_data_to_wufoo($registeredUserID){
             
         }
         
-    } 
+    }
     
 }
+//add_action( 'init', 'vmw_send_data_to_wufoo', 10, 2 );
 add_action( 'um_after_save_registration_details', 'vmw_send_data_to_wufoo', 10, 2 );
-
 ?>
