@@ -48,7 +48,7 @@ function vmw_send_data_to_wufoo($registeredUserID){
     //$registeredUserID = 508;
     
     $wufoo_API_key = '14EZ-IL48-J3F3-LDNF';
-    $wufoo_FORM_hash = 'se52lup0q26hy8';
+    $wufoo_FORM_hash = 'p1vweylf0rf967b'; // for testing
     //$wufoo_FORM_hash = 'm1mxmm630duq7yc';
     
     
@@ -58,13 +58,21 @@ function vmw_send_data_to_wufoo($registeredUserID){
     $user_main_data = get_userdata( $registeredUserID );
     $user_meta_data = get_user_meta( $registeredUserID );
     
+//    echo '<pre>';
+//    print_r($user_main_data);
+//    print_r($user_meta_data);
+//    echo '</pre>';
+
+
     /* User main data */
+    $gender                         =   get_user_meta( $registeredUserID, 'user_gender', true);
     $title                          =   get_user_meta( $registeredUserID, 'user_title', true);
     $firstName                      =   get_user_meta( $registeredUserID, 'first_name', true);
     $lastName                       =   get_user_meta( $registeredUserID, 'last_name', true);
     $address                        =   get_user_meta( $registeredUserID, 'user_addr_a', true);
     $city                           =   get_user_meta( $registeredUserID, 'user_city', true);
     $zipcode                        =   get_user_meta( $registeredUserID, 'user_zipcode', true);
+    $country                        =   get_user_meta( $registeredUserID, 'country', true);
     $telefone                       =   get_user_meta( $registeredUserID, 'user_phone', true);
     $submited                       =   get_user_meta( $registeredUserID, 'submitted', true); // to get the email address
     
@@ -83,34 +91,41 @@ function vmw_send_data_to_wufoo($registeredUserID){
     // Ländlich - Städtisch - Grossstädtisch
     $place_wished_residence         =   get_user_meta( $registeredUserID, 'place_wished_residence', true);
     
-    // <80.000 Euro - 80.000 bis 120.000 Euro - 120.000 bis 160.000 Euro - 160.000 bis 200.000 Euro - >200.000 Euro
+    // Desire anuall income - Single string
     $desired_annual_salary          =   get_user_meta( $registeredUserID, 'desired_annual_salary', true);
     
     // Einzelpraxis/Satellitenpraxis - Gemeinschaftspraxis/MVZ - Klinik
     $type_company                   =   get_user_meta( $registeredUserID, 'type_company', true);
+
     
     $user_specialization_exam_year  =   get_user_meta( $registeredUserID, 'user_specialization_exam_year', true); 
     
     
     // CREATE FIELDS STRING TO POST
-    $fields = 'Field115='    .      $title          // User title
-            . '&Field116='   .      $firstName      // User first name
-            . '&Field117='   .      $lastName       // User last name
+    $fields = 'Field120='    .      $gender[0]                      // User title
+            . '&Field115='   .      $title                          // User first name
+            . '&Field116='   .      $firstName                      // User first name
+            . '&Field117='   .      $lastName                       // User last name
 
-            . '&Field3='     .      $address        // User street address
-            . '&Field5='     .      $city           // User street address
-            . '&Field7='     .      $zipcode        // User ZIP code
-            . '&Field9='     .      $submited['user_email']        // User Email
-            . '&Field1229='  .      $telefone       // User phone number
-    ;
-    
+            . '&Field3='     .      $address                        // User street address
+            . '&Field5='     .      $city                           // User street address
+            . '&Field7='     .      $zipcode                        // User ZIP code
+            . '&Field8='     .      $country                        // User Country
+            . '&Field9='     .      $submited['user_email']         // User Email
+            . '&Field10='    .      $telefone                       // User phone number
+
+            . '&Field1841='  .      $desired_annual_salary[0]           // User Desire Anuall Income
+            . '&Field1023='  .      $user_specialization_exam_year[0]   // User Year of graduation
+        ;
+
     // Desired Positions
     foreach( $desired_positions as $position ){
         $positions = array(
-            '12' => 'Assistenzarzt',
-            '13' => 'Facharzt mit Möglichkeit zur operativen Ausbildung',
-            '14' => 'Facharzt konservativ',
-            '15' => 'Operateur',
+            '12' => 'Assistenzarzt/in',
+            '13' => 'Facharzt/in',
+            '14' => 'Operative Ausbildung',
+            '15' => 'Operateur/in',
+            '16' => 'Ärztliche Leitung',
         );  
         foreach($positions as $key => $position_name){
             if($position == strtoupper($position_name)){
@@ -122,8 +137,8 @@ function vmw_send_data_to_wufoo($registeredUserID){
     
     //Desired postal codes
     $zip_codes = array();
-    for($i = 0; $i <= 9; $i++){
-        $zip_codes['12' . $i + 1] = $i;
+    for($i = 1232; $i <= 1241; $i++){
+        $zip_codes[$i] = $i;
     } 
     foreach( $desired_postalcode as $postalcode ){
         
@@ -140,9 +155,9 @@ function vmw_send_data_to_wufoo($registeredUserID){
     // Desired Employments ratio
     foreach( $desired_job as $position ){
         $positions = array(
-            '221' => 'Angestellter Arzt',
-            '222' => 'Honorararzt',
-            '223' => 'Partner/Eigentümer',
+            '221' => 'Angestellt',
+            '222' => 'Honorar',
+            '223' => 'Selbstständig',
         );  
         foreach($positions as $key => $position_name){
             if($position == strtoupper($position_name)){
@@ -155,8 +170,10 @@ function vmw_send_data_to_wufoo($registeredUserID){
     // Desired Employments ratio
     foreach( $desired_job_type as $position ){
         $positions = array(
-            '1128' => 'Vollzeit',
-            '1129' => 'Teilzeit'
+            '2150' => '10',
+            '2151' => '20',
+            '2152' => '30',
+            '2153' => '40'
         );  
         foreach($positions as $key => $position_name){
             if($position == strtoupper($position_name)){
@@ -169,9 +186,9 @@ function vmw_send_data_to_wufoo($registeredUserID){
     // Desired locations
     foreach( $place_wished_residence as $position ){
         $positions = array(
-            '321' => 'Ländlich',
-            '322' => 'Städtisch',
-            '323' => 'Grossstädtisch'
+            '321' => 'Land',
+            '322' => 'Stadt',
+            '323' => 'Großstadt'
         );  
         foreach($positions as $key => $position_name){
             if($position == strtoupper($position_name)){
@@ -182,27 +199,10 @@ function vmw_send_data_to_wufoo($registeredUserID){
     }
     
     // Desired Target content
-    foreach( $desired_annual_salary as $position ){
+    foreach( $type_company as $position ){
         $positions = array(
-            '421' => '<80.000 Euro',
-            '422' => '80.000 bis 120.000 Euro',
-            '423' => '120.000 bis 160.000 Euro',
-            '424' => '160.000 bis 200.000 Euro',
-            '425' => '>200.000 Euro'
-        );  
-        foreach($positions as $key => $position_name){
-            if($position == strtoupper($position_name)){
-                $fields .= '&Field' . $key . '=' . urlencode($position_name);
-                break;
-            }
-        }                
-    }
-    
-    // Desired Target content
-    foreach( $desired_annual_salary as $position ){
-        $positions = array(
-            '521' => 'Einzelpraxis/Satellitenpraxis',
-            '522' => 'Gemeinschaftspraxis/MVZ',
+            '521' => 'Einzelpraxis',
+            '522' => 'Großpraxis',
             '523' => 'Klinik'
         );  
         foreach($positions as $key => $position_name){
@@ -213,7 +213,10 @@ function vmw_send_data_to_wufoo($registeredUserID){
         }                
     }
     
-    $fields .= '&Field1023='. urlencode($user_specialization_exam_year);
+//    echo '<pre>';
+//    echo $fields;
+//    echo '</pre>';
+//    die;
     
     /**
     * Returns an array of wufoo entries of current form Hash for POST procedure
@@ -223,7 +226,7 @@ function vmw_send_data_to_wufoo($registeredUserID){
 
     
     curl_setopt($wufoocurl, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($wufoocurl, CURLOPT_USERPWD, $wufoo_API_key .':palacios');
+    curl_setopt($wufoocurl, CURLOPT_USERPWD, $wufoo_API_key .':knoptimed');
     curl_setopt($wufoocurl, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
     curl_setopt($wufoocurl, CURLOPT_SSL_VERIFYPEER, true);
     curl_setopt($wufoocurl, CURLOPT_FOLLOWLOCATION, true);
@@ -236,6 +239,7 @@ function vmw_send_data_to_wufoo($registeredUserID){
     * Validar si logro conectarse para verificar si existe registro
     */
     if($resultStatus['http_code'] == 200) {
+
         /**
         * Variable inicializada en falso para establecer un estatus
         * si esta el correo ya en la base de datos
@@ -292,13 +296,19 @@ function vmw_send_data_to_wufoo($registeredUserID){
             * Se ejecuta el CURL
             */
             $response = curl_exec($wufoocurl);
+            $json = json_decode($response);
+            echo '<pre>';
+            echo json_encode($json, JSON_PRETTY_PRINT);
+            echo '</pre>';
             $resultStatus = curl_getinfo($wufoocurl);
+            echo '<pre>';
+            echo print_r($resultStatus);
+            echo '</pre>';
             
         }
         
     }
     
 }
-//add_action( 'init', 'vmw_send_data_to_wufoo', 10, 2 );
 add_action( 'um_after_save_registration_details', 'vmw_send_data_to_wufoo', 10, 2 );
 ?>
