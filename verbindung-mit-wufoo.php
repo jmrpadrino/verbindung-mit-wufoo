@@ -137,8 +137,8 @@ function vmw_send_data_to_wufoo($registeredUserID){
     
     //Desired postal codes
     $zip_codes = array();
-    for($i = 1232; $i <= 1241; $i++){
-        $zip_codes[$i] = $i;
+    for($i = 1232, $j = 0; $i <= 1241; $i++, $j++){
+        $zip_codes[$i] = $j;
     } 
     foreach( $desired_postalcode as $postalcode ){
         
